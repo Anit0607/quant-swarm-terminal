@@ -7,6 +7,7 @@ import hashlib
 import struct
 import urllib.request
 import urllib.error
+from datetime import datetime, timedelta
 
 DHAN_CLIENT_ID = os.environ.get('DHAN_CLIENT_ID', '')
 DHAN_PIN = os.environ.get('DHAN_PIN', '')
@@ -71,3 +72,9 @@ def dhan_api_request(endpoint, method='GET', body=None):
         return {'error': f'HTTP {e.code}: {e.read().decode("utf-8")}'}
     except Exception as e:
         return {'error': str(e)}
+
+def get_historical_trades(days=30):
+    to_date = datetime.now().strftime('%Y-%m-%d')
+    from_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
+    res = dhan_api_request(f'trades/{from_date}/{to_date}/0')
+    return res if isinstance(res, list) else []
