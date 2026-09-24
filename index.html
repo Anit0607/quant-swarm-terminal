@@ -167,7 +167,60 @@
           </table>
         </div>
       </div>
+<div style="margin-top:16px;">
+        <div class="card-title" style="margin-bottom:8px;">TRADE HISTORY JOURNAL</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Qty</th>
+                <th>Entry</th>
+                <th>Exit / CMP</th>
+                <th>Realized P&amp;L</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="trade-history-body"></tbody>
+          </table>
+        </div>
+      </div>
 
+      <script>
+        // Auto-render Trade History from /api/state
+        async function fetchTradeHistory() {
+          try {
+            const res = await fetch('/api/state');
+            const data = await res.json();
+            const list = data.trade_history || data.trades || data.history || [];
+            const tbody = document.getElementById('trade-history-body');
+            if (!tbody || list.length === 0) return;
+
+            tbody.innerHTML = list.map(t => {
+              const pnl = Number(t.pnl || t.realized_pnl || 0);
+              const isProfit = pnl >= 0;
+              const pnlColor = isProfit ? '#43d692' : '#f691b2';
+              const pnlSign = isProfit ? '+' : '';
+              return `
+                <tr>
+                  <td style="font-weight:600;">${t.symbol || '-'}</td>
+                  <td><span class="badge ${(t.side || '').toLowerCase()}">${t.side || '-'}</span></td>
+                  <td style="color:var(--text-secondary); font-size:11px;">${t.qty || t.quantity || '-'}</td>
+                  <td style="color:var(--text-secondary); font-size:11px;">₹${Number(t.entry || t.entry_price || 0).toFixed(2)}</td>
+                  <td style="color:var(--text-secondary); font-size:11px;">₹${Number(t.exit || t.cmp || 0).toFixed(2)}</td>
+                  <td style="color:${pnlColor}; font-weight:600; font-size:11px;">${pnlSign}₹${pnl.toFixed(2)}</td>
+                  <td style="color:var(--text-muted); font-size:10px;">${t.status || 'CLOSED'}</td>
+                </tr>
+              `;
+            }).join('');
+          } catch (e) {
+            console.error('Error loading trade history:', e);
+          }
+        }
+        setInterval(fetchTradeHistory, 5000);
+        fetchTradeHistory();
+      </script>
       <button class="btn btn-kill" onclick="triggerKillSwitch()">EMERGENCY KILL-SWITCH: LIQUIDATE ALL POSITIONS</button>
     </div>
 
