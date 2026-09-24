@@ -37,7 +37,6 @@ class handler(BaseHTTPRequestHandler):
 
             pos = dhan_api_request('positions')
             if isinstance(pos, list) and len(pos) > 0:
-                live_positions = []
                 for p in pos:
                     side = 'BUY' if p.get('positionType') == 'LONG' else 'SELL'
                     qty = abs(p.get('netQty', 0))

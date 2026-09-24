@@ -9,9 +9,9 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timedelta
 
-DHAN_CLIENT_ID = os.environ.get('DHAN_CLIENT_ID', '')
-DHAN_PIN = os.environ.get('DHAN_PIN', '')
-DHAN_TOTP_SECRET = os.environ.get('DHAN_TOTP_SECRET', '')
+DHAN_CLIENT_ID = os.environ.get('DHAN_CLIENT_ID') or os.environ.get('DHAN CLIENT ID') or ''
+DHAN_PIN = os.environ.get('DHAN_PIN') or os.environ.get('DHAN PIN') or ''
+DHAN_TOTP_SECRET = os.environ.get('DHAN_TOTP_SECRET') or os.environ.get('DHAN TOTP SECRET') or ''
 
 _cached_token = None
 _token_expiry = 0
