@@ -46,7 +46,7 @@ class handler(BaseHTTPRequestHandler):
                     pnl_pct = f'{((pnl / (entry * qty)) * 100):+.2f}%' if (entry * qty) > 0 else '0.0%'
                     live_positions.append({
                         'symbol': p.get('tradingSymbol', p.get('securityId', 'ACTIVE')),
-                        'side': f'{side} ({p.get(\"productType\", \"INTRADAY\")})',
+                        'side': f'{side} ({p.get("productType", "INTRADAY")})',
                         'qty': qty,
                         'entry_price': entry,
                         'cmp': cmp_val,
