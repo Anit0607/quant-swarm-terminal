@@ -22,7 +22,7 @@ def get_totp(secret):
     counter = int(time.time() // 30)
     msg = struct.pack('>Q', counter)
     digest = hmac.new(key, msg, hashlib.sha1).digest()
-    offset = digest & 0xF
+    offset = digest[-1] & 0xF
     code = struct.unpack('>I', digest[offset:offset + 4])[0] & 0x7FFFFFFF
     return str(code % 1000000).zfill(6)
 
