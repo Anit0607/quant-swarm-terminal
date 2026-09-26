@@ -30,7 +30,11 @@ class handler(BaseHTTPRequestHandler):
             if isinstance(funds, dict) and 'error' not in funds:
                 dhan_connected = True
                 dhan_status = 'Connected (Live Dhan HQ)'
-                avail = funds.get('availabelBalance') or funds.get('sodLimit') or funds.get('cashBalance')
+                avail = None
+                for key in ['availabelBalance', 'availableBalance', 'sodLimit', 'cashBalance']:
+                    if key in funds and funds[key] is not None:
+                        avail = funds[key]
+                        break
                 if avail is not None:
                     available_margin = float(avail)
                     capital_base = max(capital_base, available_margin)
@@ -71,19 +75,7 @@ class handler(BaseHTTPRequestHandler):
                         })
 
         if not live_positions:
-            live_positions = [
-                {
-                    'symbol': 'ICICIBANK',
-                    'side': 'BUY (MIS)',
-                    'qty': 16,
-                    'entry_price': 1245.00,
-                    'cmp': 1266.50,
-                    'pnl': 344.00,
-                    'pnl_pct': '+1.73%',
-                    'trailing_stop': '₹1,248.00 (LOCKED)',
-                    'status': 'IN PROFIT'
-                }
-            ]
+            live_positions = []
 
         state = {
             'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S IST'),
