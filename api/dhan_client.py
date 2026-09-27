@@ -57,6 +57,7 @@ def dhan_api_request(endpoint, method='GET', body=None):
     url = f'https://api.dhan.co/v2/{clean_ep}'
     headers = {
         'access-token': token,
+        'client-id': DHAN_CLIENT_ID,
         'dhanClientId': DHAN_CLIENT_ID,
         'Content-Type': 'application/json',
         'Accept': 'application/json'

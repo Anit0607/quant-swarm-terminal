@@ -3,13 +3,14 @@ import json
 from datetime import datetime
 
 try:
-    from api.dhan_client import dhan_api_request, get_historical_trades
+    from api.dhan_client import dhan_api_request, get_historical_trades, get_market_ltp
 except ImportError:
     try:
-        from dhan_client import dhan_api_request, get_historical_trades
+        from dhan_client import dhan_api_request, get_historical_trades, get_market_ltp
     except ImportError:
         dhan_api_request = None
         get_historical_trades = None
+        get_market_ltp = None
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -81,6 +82,7 @@ class handler(BaseHTTPRequestHandler):
             'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S IST'),
             'dhan_connected': dhan_connected,
             'dhan_status': dhan_status,
+            'raw_funds': funds if dhan_api_request and 'funds' in locals() else None,
             'market_status': 'NORMAL TRADING SESSION',
             'india_vix': 10.35,
             'vix_regime': 'NORMAL (< 22.0)',
