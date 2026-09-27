@@ -283,9 +283,9 @@ const FALLBACK_STATE = {
 
 function renderUI(data) {
   document.getElementById('clock').innerText = data.timestamp || new Date().toLocaleTimeString('en-US') + " IST";
-  if (data.available_margin) {
-    document.getElementById('avail-margin').innerText = "₹" + data.available_margin.toLocaleString('en-IN', {minimumFractionDigits:2});
-  }
+  if (data.available_margin !== undefined && data.available_margin !== null) {
+    document.getElementById('avail-margin').innerText = "₹" + Number(data.available_margin).toLocaleString('en-IN', {minimumFractionDigits:2});
+}
 
   let candHtml = '';
   data.candidates.forEach(c => {
