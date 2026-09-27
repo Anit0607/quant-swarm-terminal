@@ -97,19 +97,19 @@
         <span class="card-title">ACCOUNT COLLATERAL</span>
         <span class="badge badge-green">MICRO-PILOT</span>
       </div>
-      <div class="metric-row"><span class="metric-label">Base Portfolio Capital</span><span class="metric-value">₹2,00,000.00</span></div>
-      <div class="metric-row"><span class="metric-label">Available Cash Margin</span><span class="metric-value" style="color:var(--green);" id="avail-margin">₹1,42,320.00</span></div>
-      <div class="metric-row"><span class="metric-label">Max Sizing Per Trade (10%)</span><span class="metric-value">₹20,000.00</span></div>
+      <div class="metric-row"><span class="metric-label">Base Portfolio Capital</span><span class="metric-value" id="base-capital">₹2,00,000.00</span></div>
+      <div class="metric-row"><span class="metric-label">Available Cash Margin</span><span class="metric-value" style="color:var(--green);" id="avail-margin">₹0.00</span></div>
+      <div class="metric-row"><span class="metric-label">Max Sizing Per Trade (10%)</span><span class="metric-value" id="max-sizing">₹20,000.00</span></div>
     </div>
 
     <div class="card">
       <div class="card-header">
         <span class="card-title">MARKET REGIME RADAR</span>
-        <span class="badge badge-green">NORMAL REGIME</span>
+        <span class="badge badge-green" id="vix-regime-badge">NORMAL REGIME</span>
       </div>
-      <div class="metric-row"><span class="metric-label">NSE India VIX</span><span class="metric-value">11.25 (-1.23%)</span></div>
-      <div class="metric-row"><span class="metric-label">Bank Nifty OBI (IUIS)</span><span class="metric-value" style="color:var(--blue);">+0.18 (Balanced)</span></div>
-      <div class="metric-row"><span class="metric-label">Tradability Mask</span><span class="metric-value" style="color:var(--green);">ALL ACTIVE</span></div>
+      <div class="metric-row"><span class="metric-label">NSE India VIX</span><span class="metric-value" id="india-vix">10.35</span></div>
+      <div class="metric-row"><span class="metric-label">Bank Nifty OBI (15m)</span><span class="metric-value" style="color:var(--blue);" id="banknifty-obi">+0.22 (Balanced)</span></div>
+      <div class="metric-row"><span class="metric-label">Tradability Mask</span><span class="metric-value" style="color:var(--green);" id="tradability-mask">ALL ACTIVE</span></div>
     </div>
 
     <div class="card">
@@ -117,9 +117,9 @@
         <span class="card-title">QUANT SIZING &amp; RISK</span>
         <span class="badge badge-blue">SHARPE &gt; 1.5</span>
       </div>
-      <div class="metric-row"><span class="metric-label">Rolling 20-Day Sharpe</span><span class="metric-value" style="color:var(--green); font-size:14px;">4.85</span></div>
-      <div class="metric-row"><span class="metric-label">Cumulative Realized Alpha</span><span class="metric-value" style="color:var(--green);">+₹56,343.40 (+5.63%)</span></div>
-      <div class="metric-row"><span class="metric-label">Daily Drawdown Status</span><span class="metric-value" style="color:var(--green);">0.00% (&lt; 5% Limit)</span></div>
+      <div class="metric-row"><span class="metric-label">Rolling 20-Day Sharpe</span><span class="metric-value" style="color:var(--green); font-size:14px;" id="rolling-sharpe">4.85</span></div>
+      <div class="metric-row"><span class="metric-label">Cumulative Realized Alpha</span><span class="metric-value" style="color:var(--green);" id="realized-alpha">+₹58,133.00</span></div>
+      <div class="metric-row"><span class="metric-label">Daily Drawdown Status</span><span class="metric-value" style="color:var(--green);" id="daily-drawdown">0.00% (&lt; 5% Limit)</span></div>
     </div>
   </div>
 
@@ -167,7 +167,60 @@
           </table>
         </div>
       </div>
+<div style="margin-top:16px;">
+        <div class="card-title" style="margin-bottom:8px;">TRADE HISTORY JOURNAL</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Qty</th>
+                <th>Entry</th>
+                <th>Exit / CMP</th>
+                <th>Realized P&amp;L</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="trade-history-body"></tbody>
+          </table>
+        </div>
+      </div>
 
+      <script>
+        // Auto-render Trade History from /api/state
+        async function fetchTradeHistory() {
+          try {
+            const res = await fetch('/api/state');
+            const data = await res.json();
+            const list = data.trade_history || data.trades || data.history || [];
+            const tbody = document.getElementById('trade-history-body');
+            if (!tbody || list.length === 0) return;
+
+            tbody.innerHTML = list.map(t => {
+              const pnl = Number(t.pnl || t.realized_pnl || 0);
+              const isProfit = pnl >= 0;
+              const pnlColor = isProfit ? '#43d692' : '#f691b2';
+              const pnlSign = isProfit ? '+' : '';
+              return `
+                <tr>
+                  <td style="font-weight:600;">${t.symbol || '-'}</td>
+                  <td><span class="badge ${(t.side || '').toLowerCase()}">${t.side || '-'}</span></td>
+                  <td style="color:var(--text-secondary); font-size:11px;">${t.qty || t.quantity || '-'}</td>
+                  <td style="color:var(--text-secondary); font-size:11px;">₹${Number(t.entry || t.entry_price || 0).toFixed(2)}</td>
+                  <td style="color:var(--text-secondary); font-size:11px;">₹${Number(t.exit || t.cmp || 0).toFixed(2)}</td>
+                  <td style="color:${pnlColor}; font-weight:600; font-size:11px;">${pnlSign}₹${pnl.toFixed(2)}</td>
+                  <td style="color:var(--text-muted); font-size:10px;">${t.status || 'CLOSED'}</td>
+                </tr>
+              `;
+            }).join('');
+          } catch (e) {
+            console.error('Error loading trade history:', e);
+          }
+        }
+        setInterval(fetchTradeHistory, 5000);
+        fetchTradeHistory();
+      </script>
       <button class="btn btn-kill" onclick="triggerKillSwitch()">EMERGENCY KILL-SWITCH: LIQUIDATE ALL POSITIONS</button>
     </div>
 
@@ -229,9 +282,40 @@ const FALLBACK_STATE = {
 };
 
 function renderUI(data) {
-  document.getElementById('clock').innerText = data.timestamp || new Date().toLocaleTimeString('en-US') + " IST";
-  if (data.available_margin) {
-    document.getElementById('avail-margin').innerText = "₹" + data.available_margin.toLocaleString('en-IN', {minimumFractionDigits:2});
+  if (document.getElementById('clock')) {
+    document.getElementById('clock').innerText = data.timestamp || new Date().toLocaleTimeString('en-US') + " IST";
+  }
+  if (data.available_margin !== undefined && data.available_margin !== null && document.getElementById('avail-margin')) {
+    document.getElementById('avail-margin').innerText = "₹" + Number(data.available_margin).toLocaleString('en-IN', {minimumFractionDigits:2});
+  }
+  if (data.capital_base !== undefined && data.capital_base !== null && document.getElementById('base-capital')) {
+    document.getElementById('base-capital').innerText = "₹" + Number(data.capital_base).toLocaleString('en-IN', {minimumFractionDigits:2});
+    if (document.getElementById('max-sizing')) {
+      document.getElementById('max-sizing').innerText = "₹" + Number(data.capital_base * 0.10).toLocaleString('en-IN', {minimumFractionDigits:2});
+    }
+  }
+  if (data.india_vix !== undefined && document.getElementById('india-vix')) {
+    document.getElementById('india-vix').innerText = data.india_vix + (data.vix_regime ? " (" + data.vix_regime + ")" : "");
+  }
+  if (data.vix_regime && document.getElementById('vix-regime-badge')) {
+    document.getElementById('vix-regime-badge').innerText = data.vix_regime;
+  }
+  if (data.banknifty_obi !== undefined && document.getElementById('banknifty-obi')) {
+    const sign = data.banknifty_obi > 0 ? "+" : "";
+    document.getElementById('banknifty-obi').innerText = sign + data.banknifty_obi + " (Balanced)";
+  }
+  if (data.tradability_mask && document.getElementById('tradability-mask')) {
+    document.getElementById('tradability-mask').innerText = data.tradability_mask;
+  }
+  if (data.rolling_sharpe && document.getElementById('rolling-sharpe')) {
+    document.getElementById('rolling-sharpe').innerText = data.rolling_sharpe;
+  }
+  if (data.realized_pnl !== undefined && document.getElementById('realized-alpha')) {
+    const pnlSign = data.realized_pnl >= 0 ? "+" : "";
+    document.getElementById('realized-alpha').innerText = pnlSign + "₹" + Number(data.realized_pnl).toLocaleString('en-IN', {minimumFractionDigits:2});
+  }
+  if (data.global_drawdown !== undefined && document.getElementById('daily-drawdown')) {
+    document.getElementById('daily-drawdown').innerText = Number(data.global_drawdown).toFixed(2) + "% (< 5% Limit)";
   }
 
   let candHtml = '';
